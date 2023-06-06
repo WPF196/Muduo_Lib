@@ -9,7 +9,7 @@
 #define LOG_INFO(logmsgFormat, ...) \
     do \
     { \
-        Logger* logger = Logger::getInstance(); \
+        Logger& logger = Logger::getInstance(); \
         logger.setLogLevel(INFO); \
         char buf[1024] = {0}; \
         snprintf(buf, 1024, logmsgFormat, ##__VA_ARGS__); \
@@ -19,7 +19,7 @@
 #define LOG_ERROR(logmsgFormat, ...) \
     do \
     { \
-        Logger* logger = Logger::getInstance(); \
+        Logger& logger = Logger::getInstance(); \
         logger.setLogLevel(ERROR); \
         char buf[1024] = {0}; \
         snprintf(buf, 1024, logmsgFormat, ##__VA_ARGS__); \
@@ -29,18 +29,19 @@
 #define LOG_FATAL(logmsgFormat, ...) \
     do \
     { \
-        Logger* logger = Logger::getInstance(); \
+        Logger& logger = Logger::getInstance(); \
         logger.setLogLevel(FATAL); \
         char buf[1024] = {0}; \
         snprintf(buf, 1024, logmsgFormat, ##__VA_ARGS__); \
         logger.log(buf); \
+        exit(1); \
     }while(0);
 
 #ifdef MUDEBUG
 #define LOG_DEBUG(logmsgFormat, ...) \
     do \
     { \
-        Logger* logger = Logger::getInstance(); \
+        Logger& logger = Logger::getInstance(); \
         logger.setLogLevel(DEBUG); \
         char buf[1024] = {0}; \
         snprintf(buf, 1024, logmsgFormat, ##__VA_ARGS__); \
@@ -63,7 +64,7 @@ enum LogLevel
 class Logger : noncopyable
 {
 public:
-    static Logger* getInstance();   // 获取日志唯一的实例化对象
+    static Logger& getInstance();   // 获取日志唯一的实例化对象
     void setLogLevel(int);          // 设置日志等级
     void log(std::string);          // 写日志
 

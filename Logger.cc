@@ -3,11 +3,10 @@
 
 #include <iostream>
 
-Logger* Logger::getInstance()
+Logger& Logger::getInstance()
 {
-    if(instance_ == nullptr)
-        instance_ = new Logger();
-    return instance_;
+    static Logger logger;
+    return logger;
 }
 
 void Logger::setLogLevel(int level)
