@@ -21,9 +21,9 @@ public:
     ~EPollPoller() override;
 
     // 重写基类Poller的抽象方法
-    Timestamp poll(int timeoutMs, ChannelList *activeChannels) override;
-    void updateChannel(Channel *channel) override;
-    void removeChannel(Channel *channel) override;
+    Timestamp poll(int timeoutMs, ChannelList *activeChannels) override;    // epoll_wait
+    void updateChannel(Channel *channel) override;  // epoll_ctl add
+    void removeChannel(Channel *channel) override;  // epoll_ctl del
 private:
     static const int kInitEventListSize = 16;
 

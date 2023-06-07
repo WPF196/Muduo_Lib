@@ -23,3 +23,28 @@ EPollPoller::~EPollPoller()
 {
     ::close(epollfd_);
 }
+
+Timestamp EPollPoller::poll(int timeoutMs, ChannelList *activeChannels)
+{
+
+}
+
+void EPollPoller::updateChannel(Channel *channel)
+{
+
+}
+
+void EPollPoller::removeChannel(Channel *channel)
+{
+
+}
+
+void EPollPoller::fillActiveChannels(int numEvents, ChannelList *activeChannels) const
+{
+
+}
+
+void EPollPoller::update(int operation, Channel *channel)
+{
+
+}
