@@ -25,7 +25,7 @@ public:
     // fd得到poller通知以后，处理事件（回调函数）
     void handleEvent(Timestamp receiveTime);
 
-    // 设置回调函数对象（调用转换的右值，节约内存资源）
+    // 向Channel对象注册各类事件的处理函数（调用转换的右值，节约内存资源）
     void setReadCallback(ReadEventCallback cb){ readCallback_ = std::move(cb); }
     void setWriteCallback(EventCallback cb){ writeCallback_ = std::move(cb); }
     void setCloseCallback(EventCallback cb){ closeCallback_ = std::move(cb); }
@@ -36,7 +36,7 @@ public:
 
     int fd() const { return fd_; }
     int events() const { return events_; }
-    void set_revents(int revt) { revents_ = revt; }
+    void set_revents(int revt) { revents_ = revt; } // 封装fd_实际发生的事件到Channel中
 
     // 设置fd相应的状态
     void enableReading() { events_ |= kReadEvent; update(); }   // 添加kReadEvent
@@ -67,9 +67,9 @@ private:
 
     EventLoop *loop_;               // 事件循环
     const int fd_;                  // Poller监听的对象
-    int events_;                    // 注册fd感兴趣的事件
-    int revents_;                   // poller返回的具体发生的事件
-    int index_;                     
+    int events_;                    // fd感兴趣的事件类型集合
+    int revents_;                   // 事件监听器实际监听到该fd发生的事件类型集合
+    int index_;                     // 事件状态
 
     std::weak_ptr<void> tie_;
     bool tied_;

@@ -4,6 +4,7 @@
 #include <iostream>
 #include <string>
 
+// 时间类
 class Timestamp
 {
 public:
@@ -15,7 +16,6 @@ public:
 
 private:
     int64_t microSecondsSinceEpoch_;
-
 };
 
 

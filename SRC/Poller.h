@@ -10,17 +10,18 @@ class Channel;
 class EventLoop;
 
 // muduo库中多路事件分发器的核心IO复用模块
+// EPollPoller、PollPoller的虚基类
 class Poller : noncopyable
 {
 public:
     using ChannelList = std::vector<Channel*>;     // Channel表
 
-    Poller(EventLoop* loop);
+    Poller(EventLoop* loop);        // 参数：Poller所属的EventLoop
     virtual ~Poller() = default;
 
     // 给所有IO复用保留统一的接口  （参数2：正在运行的channel）
     virtual Timestamp poll(int timeoutMs, ChannelList* activeChannels) = 0;
-    virtual void updateChannel(Channel* channel) = 0;   // channel事件变更
+    virtual void updateChannel(Channel* channel) = 0;   
     virtual void removeChannel(Channel* channel) = 0;
     
     // 判断参数channel是否在当前Poller当中
