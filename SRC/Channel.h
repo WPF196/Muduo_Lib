@@ -19,7 +19,7 @@ public:
     using EventCallback = std::function<void()>;  
     using ReadEventCallback = std::function<void(Timestamp)>;   
 
-    Channel(EventLoop* loop, int fd);
+    Channel(EventLoop* loop, int fd);   // 参数：channel所在的loop和cannel的fd
     ~Channel();
 
     // fd得到poller通知以后，处理事件（回调函数）
@@ -36,9 +36,10 @@ public:
 
     int fd() const { return fd_; }
     int events() const { return events_; }
-    void set_revents(int revt) { revents_ = revt; } // 封装fd_实际发生的事件到Channel中
+    // poller监听到某个文件描述符发生事件，将这个文件描述符实际发生的事件封装进这个Channel
+    void set_revents(int revt) { revents_ = revt; } 
 
-    // 设置fd相应的状态
+    // 将Channel中的文件描述符及其感兴趣事件注册到Poller上或从Poller移除
     void enableReading() { events_ |= kReadEvent; update(); }   // 添加kReadEvent
     void disableReading() { events_ &= ~kReadEvent; update(); } // 去除kReadEvent
     void enableWriting() { events_ |= kWriteEvent; update(); }

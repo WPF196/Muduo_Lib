@@ -31,11 +31,11 @@ public:
     Timestamp pollReturnTime() const { return pollReturnTime_; }
     
     void runInLoop(Functor cb);     // 在当前loop中执行
-    void queueInLoop(Functor cb);   // 把cb放入队列中，唤醒loop所在的线程，执行cb
+    void queueInLoop(Functor cb);   // 把cb放入队列中，等唤醒loop所在的线程，再执行cb
     
     void wakeup();                  // 唤醒loop所在的线程
 
-    // EventLoop的方法 ==调用==》 Poller的方法
+    // EventLoop的方法 ===调用==》 Poller的方法
     void updateChannel(Channel* channel);
     void removeChannel(Channel* channel);
     bool hasChannel(Channel* channel);
@@ -44,26 +44,26 @@ public:
     bool isInLoopThread() const { return threadId_ == CurrentThread::tid(); }
 
 private: 
-    void handleRead();          // 唤醒
-    void doPendingFunctors();
+    void handleRead(); // wake up
+    void doPendingFunctors(); // 执行回调
 
     using ChannelList = std::vector<Channel*>;
     
     /* 原子变量，它能够确保对共享变量的操作在执行时不会
     被其他线程的操作干扰，从而避免竞态条件和死锁 */
-    std::atomic_bool looping_;  
+    std::atomic_bool looping_;      // 是否循环
     std::atomic_bool quit_;         // 标志退出loop循环
     
     const pid_t threadId_;          // 记录当前loop所在线程的id
     
-    Timestamp pollReturnTime_;      // poller返回发生事件的channels的时间点
-    std::unique_ptr<Poller> poller_;
+    Timestamp pollReturnTime_;      // poller返回发生事件channels的时间点
+    std::unique_ptr<Poller> poller_;// 指向poller
     
     int wakeupFd_;  // 当mainLoop获取一个新用户的channel，通过轮询，选择一个subLoop并唤醒之
-    std::unique_ptr<Channel> wakeupChannel_;
+    std::unique_ptr<Channel> wakeupChannel_;    // 指向唤醒的channel，包含的是 wakeupfd
 
-    ChannelList activeChannels_;
-    Channel* currentActiveChannel_;
+    ChannelList activeChannels_;                // 活跃的Channel表
+    Channel* currentActiveChannel_;             // 当前活跃的Channel
 
     std::atomic_bool callingPendingFunctors_;   // 标识当前loop是否有需要执行的回调操作
     std::vector<Functor> pendingFunctors_;      // 存储loop需要执行的所有的回调操作
