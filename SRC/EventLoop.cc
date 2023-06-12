@@ -7,7 +7,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <error.h>
-
+#include <memory>
 
 /* _thread变量每一个线程有一份独立实体，各个线程的值互不干扰。
 可以用来修饰那些带有全局性且值可能变，但是又不值得用全局变量保护的变量。*/
@@ -110,12 +110,84 @@ void EventLoop::quit()
     }
 }
 
+void EventLoop::runInLoop(Functor cb)
+{
+    if(isInLoopThread())    // 在当前loop线程中执行cb
+    {
+        cb();
+    }
+    else     // 在非当前loop线程中执行cb，就需要唤醒loop所在线程，执行cb
+    {
+        queueInLoop(cb);
+    }
+}
+
+void EventLoop::queueInLoop(Functor cb)
+{
+    {
+        std::unique_lock<std::mutex> lock(mutex_);
+        pendingFunctors_.emplace_back(cb);     // 直接构造（push_back是拷贝构造）
+    }
+
+    // 唤醒相应的需要执行上面回调操作的loop
+    // 不在当前线程 || （当前loop正在执行回调，但是又有了新的回调）
+    if(!isInLoopThread() || callingPendingFunctors_)    
+    {
+        wakeup();       // 唤醒loop所在线程
+    }
+}
+
 void EventLoop::handleRead()
 {
     uint64_t one = 1;       // 8个字节
     ssize_t n = read(wakeupFd_, &one, sizeof one);  // n应该等于8
     if(n != sizeof one)
     {
-        LOG_ERROR("EventLoop::handleRead() reads %d bytes instead of 8", n);
+        LOG_ERROR("EventLoop::handleRead() reads %d bytes instead of 8\n", n);
     }
+}
+
+// 向wakeupfd写一个数据，wakeupChannel就会发生读事件，当前（阻塞的）loop线程空就会被唤醒
+void EventLoop::wakeup()
+{
+    uint64_t one = 1;
+    ssize_t n = write(wakeupFd_, &one, sizeof one);
+    if(n != sizeof one)
+    {
+        LOG_ERROR("EventLoop::wakeup() write %lu bytes instead of 8\n", n)
+    }
+}
+
+// EventLoop的方法 ==调用==> Poller的方法
+void EventLoop::updateChannel(Channel* channel)
+{
+    poller_->updateChannel(channel);
+}
+
+void EventLoop::removeChannel(Channel* channel)
+{
+    poller_->removeChannel(channel);
+}
+
+bool EventLoop::hasChannel(Channel* channel)
+{
+    return poller_->hasChannel(channel);
+}
+
+void EventLoop::doPendingFunctors()
+{
+    std::vector<Functor> functors;
+    callingPendingFunctors_ = true;
+
+    {
+        std::unique_lock<std::mutex> lock(mutex_);
+        functors.swap(pendingFunctors_);
+    }
+
+    for(const Functor &functor : functors)
+    {
+        functor();      // 执行当前loop需要执行的回调操作 
+    }
+
+    callingPendingFunctors_ = false;
 }
