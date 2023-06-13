@@ -24,7 +24,7 @@ public:
     void setTcpNoDelay(bool on);    // 不进行tcp缓冲，直接发送
     void setReuseAddr(bool on);     // 地址复用
     void setReusePort(bool on);     // 端口复用
-    void setKeepAlive(bool on);     
+    void setKeepAlive(bool on);     // 设置心跳包
 private:
     const int sockfd_;
 };
